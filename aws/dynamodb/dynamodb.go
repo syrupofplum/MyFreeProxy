@@ -3,6 +3,7 @@ package dynamodb
 import (
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"strconv"
 )
 
 func PutItem(accessor *Accessor, tableName string, item map[string]interface{}) error {
@@ -10,8 +11,15 @@ func PutItem(accessor *Accessor, tableName string, item map[string]interface{}) 
 	input.SetTableName(tableName)
 	input.SetReturnConsumedCapacity("TOTAL")
 	inputItem := make(map[string]*dynamodb.AttributeValue)
-	for key, _ := range item {
-		inputItem[key] = &dynamodb.AttributeValue{}
+	for key, val := range item {
+		switch val.(type) {
+		case int:
+			attrVal := strconv.Itoa(val.(int))
+			inputItem[key] = &dynamodb.AttributeValue{N: &attrVal}
+		case string:
+			attrVal := val.(string)
+			inputItem[key] = &dynamodb.AttributeValue{S: &attrVal}
+		}
 	}
 	input.SetItem(inputItem)
 
